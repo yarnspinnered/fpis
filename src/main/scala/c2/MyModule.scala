@@ -52,18 +52,18 @@ object MyModule {
 
   def compose[A,B,C](f: B=>C, g: A => B): A => C =
     (a : A) => f(g(a))
-
-  def main(args: Array[String]) : Unit =
-    println(formatResult("abs", -42, abs))
-    println(formatFactorial(5))
-    for (i <- 1 until 7){
-      println(s"fib $i: " + fib(i))
-  }
-    println("Is 1 2 3 sorted: " + isSorted(Array(1,2,3), new Function2[Int, Int, Boolean]{
-      def apply(a: Int, b: Int) = a <= b
-    }))
-
-    println("Is 1 4 3 sorted: " + isSorted(Array(1,4,3), (x: Int,y:Int) => x <= y))
-  println(curry(Math.max)(2)(3))
+//
+//  def main(args: Array[String]) : Unit =
+//    println(formatResult("abs", -42, abs))
+//    println(formatFactorial(5))
+//    for (i <- 1 until 7){
+//      println(s"fib $i: " + fib(i))
+//  }
+//    println("Is 1 2 3 sorted: " + isSorted(Array(1,2,3), new Function2[Int, Int, Boolean]{
+//      def apply(a: Int, b: Int) = a <= b
+//    }))
+//
+//    println("Is 1 4 3 sorted: " + isSorted(Array(1,4,3), (x: Int,y:Int) => x <= y))
+//  println(curry(Math.max)(2)(3))
 
 }
