@@ -1,9 +1,9 @@
 package datastructures
 
 sealed trait MyStream[+A]{
-  def headOption: Option[A] = this match {
-    case sCons(h, t) => Some(h())
-    case sEmpty => None
+  def headOption: MyOption[A] = this match {
+    case sCons(h, t) => MySome(h())
+    case sEmpty => MyNone
   }
 
   def toList: List[A] = {
@@ -47,9 +47,9 @@ sealed trait MyStream[+A]{
   def takeWhileViaFoldRight(p: A => Boolean) : MyStream[A] =
     foldRight(sEmpty : MyStream[A])((a,z) => if (p(a)) MyStream.scons(a, z) else sEmpty)
 
-  def headOptionViaFoldRight: Option[A] =
-    foldRight(None : Option[A])((a,z) =>
-      Some(a))
+  def headOptionViaFoldRight: MyOption[A] =
+    foldRight(MyNone : MyOption[A])((a, z) =>
+      MySome(a))
 
   def map[B](f: A => B) : MyStream[B] =
     foldRight(sEmpty : MyStream[B])((a,z) => MyStream.scons({f(a)}, z))
@@ -65,6 +65,63 @@ sealed trait MyStream[+A]{
 
   def flatMap[B](f: A => MyStream[B]) : MyStream[B] =
     foldRight(sEmpty : MyStream[B])((a,z) => f(a) append z)
+
+  def mapViaUnfold[B](f: A=> B) : MyStream[B] =
+    MyStream.unfold(this)(seed => seed match {
+      case sCons(h, t) => Some((f(h()), t()))
+      case sEmpty => None
+    })
+
+  def takeViaUnfold(n : Int) : MyStream[A] =
+    MyStream.unfold((this, n))(seed => seed match {
+      case (oldStream, n) =>
+        oldStream match {
+          case sCons(h, t) => if (n == 1) Some(h(), (sEmpty, n - 1)) else Some(h(), (t(), n - 1))
+          case sEmpty => None
+      }
+    })
+
+  def takeWhileViaUnfold(p: A => Boolean) : MyStream[A] =
+    MyStream.unfold(this){
+      case sCons(h, t) if (p(h()))  => Some(h(), t())
+      case sEmpty => None
+    }
+
+  def zipWith[B](s : MyStream[B])(f : (A,B) => B) : MyStream[B] =
+    MyStream.unfold((this, s)){
+      case (sCons(h, t), sCons(h2, t2)) => Some(f(h(), h2()), (t(), t2()))
+      case _ => None
+    }
+
+  def zipAll[B](s2: MyStream[B]) : MyStream[(Option[A], Option[B])] =
+    MyStream.unfold((this, s2)){
+      case (sCons(h, t), sCons(h2, t2)) => Some(((Some(h()), Some(h2())),  (t(), t2())))
+      case (sCons(h, t), `sEmpty`) => Some(((Some(h()), None),  (t(), sEmpty)))
+      case (`sEmpty`, sCons(h2, t2)) => Some(((None, Some(h2())),  (sEmpty, t2())))
+      case (`sEmpty`, `sEmpty`) => None
+    }
+
+  def startsWith[A](s2: MyStream[A]) : Boolean = (zipAll(s2)).forAll{
+    case (Some(a), Some(b)) => a == b
+    case (Some(a), None) => true
+    case _ => false
+  }
+
+  def tails: MyStream[MyStream[A]] =
+    MyStream.unfold(this){
+      case sCons(h, t) => Some( MyStream.scons(h(), t()), t())
+      case sEmpty => None
+    }
+
+  def scanRight[B](z : B)(f : (A, =>B) => B) : MyStream[B] =
+    foldRight((z, MyStream(z))){
+      case (a, (zz, acc)) => {
+        lazy val interm = f(a,zz)
+        (interm, MyStream.scons(interm, acc))
+      }
+
+    }._2
+
 }
 case class sCons[+A](h : () => A, t: () => MyStream[A]) extends MyStream[A]
 case object sEmpty extends MyStream[Nothing]
@@ -82,5 +139,9 @@ object MyStream {
     if (as.isEmpty) sEmpty else scons(as.head, apply(as.tail : _*))
   }
 
-
+  def unfold[A,S](z:S)(f: S => Option[(A,S)]) : MyStream[A] =
+    f(z) match {
+      case Some((a,new_z)) => MyStream.scons(a, unfold(new_z)(f))
+      case None => sEmpty
+    }
 }

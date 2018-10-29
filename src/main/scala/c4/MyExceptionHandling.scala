@@ -1,36 +1,36 @@
 package c4
-import datastructures.{None, Option, Some, MyEither}
+import datastructures.{MyNone, MyOption, MySome, MyEither}
 import scala.{Option => _, Either => _, Some => _, None => _, _}
 
 case class Employee(name: String, department: String){
-  def lookupByName(name:String): Option[Employee] = if (name == this.name) Some(this) else None
+  def lookupByName(name:String): MyOption[Employee] = if (name == this.name) MySome(this) else MyNone
 }
 
 object MyExceptionHandling {
-  def mean(xs:Seq[Double]): Option[Double] = xs match {
-    case Nil => None
-    case x :: xxs => Some((xs.foldRight(0.0)((x,z) => x + z))/xs.length)
+  def mean(xs:Seq[Double]): MyOption[Double] = xs match {
+    case Nil => MyNone
+    case x :: xxs => MySome((xs.foldRight(0.0)((x, z) => x + z))/xs.length)
   }
 
-  def variance(xs: Seq[Double]) : Option[Double] =
+  def variance(xs: Seq[Double]) : MyOption[Double] =
     {
         mean(xs).map(m => xs.map(x  => math.pow(x - m, 2))).flatMap(xs => mean(xs))
     }
 
-  def Try[A](a : => A) : Option[A] =
-    try Some(a)
-    catch {case e: Exception => None}
+  def Try[A](a : => A) : MyOption[A] =
+    try MySome(a)
+    catch {case e: Exception => MyNone}
 
-  def parseInsuranceRateQuote(age: String, numberOfSpeedTickets : String) : Option[Int] = {
-    val optAge : Option[Int] = Try(age.toInt)
-    val optTickets : Option[Int] = Try(numberOfSpeedTickets.toInt)
+  def parseInsuranceRateQuote(age: String, numberOfSpeedTickets : String) : MyOption[Int] = {
+    val optAge : MyOption[Int] = Try(age.toInt)
+    val optTickets : MyOption[Int] = Try(numberOfSpeedTickets.toInt)
     optAge.flatMap(x => optTickets.map(y => x + y))
   }
 
-  def ex43(age: String, numberOfSpeedTickets : String) : Option[Int] = {
-    val optAge : Option[Int] = Try(age.toInt)
-    val optTickets : Option[Int] = Try(numberOfSpeedTickets.toInt)
-    Option.map2(optAge, optTickets)(_+_)
+  def ex43(age: String, numberOfSpeedTickets : String) : MyOption[Int] = {
+    val optAge : MyOption[Int] = Try(age.toInt)
+    val optTickets : MyOption[Int] = Try(numberOfSpeedTickets.toInt)
+    MyOption.map2(optAge, optTickets)(_+_)
   }
 
   def safeDiv(x: Int, y: Int):Either[Exception, Int] =
@@ -59,8 +59,8 @@ object MyExceptionHandling {
 
     println("Insurance rate quote parse: " + parseInsuranceRateQuote("12", "23"))
     println("ex 4.3 Using Map2: " + ex43("12", "23"))
-    println("ex 4.4 Using sequence: " + Option.sequence(Some(1)::Some(2)::Some(3) :: Nil))
-    println("ex 4.5 Using traverse: " + Option.traverse(1::2::3 :: Nil)((x : Int) => Try(x/(x-0))))
+    println("ex 4.4 Using sequence: " + MyOption.sequence(MySome(1)::MySome(2)::MySome(3) :: Nil))
+    println("ex 4.5 Using traverse: " + MyOption.traverse(1::2::3 :: Nil)((x : Int) => Try(x/(x-0))))
 
     println("ex 4.7 Using either sequence when failure present: " + MyEither.sequence(datastructures.Right(1)::datastructures.Right(2)::datastructures.Left("Random failer") :: Nil))
     println("ex 4.7 Using either sequence when success: " + MyEither.sequence(datastructures.Right(1)::datastructures.Right(2):: Nil))
