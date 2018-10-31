@@ -87,7 +87,7 @@ object MyFunctionalState {
     }
   }
 
-def main(args : Array[String]) : Unit = {
+def main1(args : Array[String]) : Unit = {
   val simple = SimpleRNG(42);
   val (n1, rng2) = simple.nextInt;
   val (n2, rng3) = rng2.nextInt;
@@ -101,7 +101,5 @@ def main(args : Array[String]) : Unit = {
   println("My ints via sequence: %s".format(sequence(List.fill(5)(intAsRand))(simple)))
   println("My candy machine: %s".format(Candy.simulateMachine(Turn::Coin::Coin::Coin::Nil).run(Machine(false, 1, 0))))
 
-
-
-}
+  }
 }
