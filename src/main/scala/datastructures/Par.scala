@@ -1,7 +1,6 @@
 package datastructures
 import java.util.concurrent.{Callable, ExecutorService, Future, TimeUnit};
 
-class Par[+A]
 
 object Par {
     type Par[A] = ExecutorService => Future[A]
