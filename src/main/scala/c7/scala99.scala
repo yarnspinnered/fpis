@@ -28,7 +28,7 @@ object scala99 {
 
   def pack[A](l : List[A]) : List[List[A]] = l.foldRight(Nil : List[List[A]])((a,z) => if (z==Nil || a != z.head.head ) List(a)::z else (a::z.head) :: z.tail)
   def encode[A](l : List[A]) : List[(A,Int)] = l.foldRight(Nil:List[(A,Int)])((a,z) => if (z==Nil || a != z.head._1 ) (a,1)::z else (z.head._1, z.head._2 + 1) :: z.tail)
-  def main(args: Array[String]): Unit = {
+  def main1(args: Array[String]): Unit = {
     println(last(List(1, 1, 2, 3, 5, 8)))
     println(penultimate(List(1, 1, 2, 3, 5, 8)))
     println(kthLast(List(1, 1, 2, 3, 5, 8), 1))
