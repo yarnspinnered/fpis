@@ -87,11 +87,20 @@ sealed trait MyStream[+A]{
       case sEmpty => None
     }
 
-  def zipWith[B](s : MyStream[B])(f : (A,B) => B) : MyStream[B] =
+  def zipWith[B,C](s : MyStream[B])(f : (A,B) => C) : MyStream[C] =
     MyStream.unfold((this, s)){
       case (sCons(h, t), sCons(h2, t2)) => Some(f(h(), h2()), (t(), t2()))
       case _ => None
     }
+
+  def zip[B](s2: MyStream[B]): MyStream[(A,B)] =
+    zipWith(s2)((_,_))
+
+  @annotation.tailrec
+  final def find(f: A => Boolean): Option[A] = this match {
+    case sEmpty => None
+    case sCons(h, t) => if (f(h())) Some(h()) else t().find(f)
+  }
 
   def zipAll[B](s2: MyStream[B]) : MyStream[(Option[A], Option[B])] =
     MyStream.unfold((this, s2)){
@@ -132,6 +141,10 @@ object MyStream {
     lazy val tail = tl
     sCons(() => head, () => tail)
   }
+
+
+  def from(n: Int): MyStream[Int] =
+    scons(n, from(n+1))
 
   def empty[A] : MyStream[A] = sEmpty
 
